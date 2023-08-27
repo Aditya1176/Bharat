@@ -1,0 +1,57 @@
+import java.io.IOException;
+import java.nio.file.*;
+import java.util.*;
+
+public class PeakSimultaneousCalls {
+    public static void main(String[] args) {
+        String file = "C:\\file.csv";
+
+        try {
+            int peakStartTime = 0;
+            int peakEndTime = 0;
+            int currentSimultaneousCalls = 0;
+            int maximumSimultaneousCalls = 0;
+            TreeMap<Integer, Integer> countCalls = new TreeMap<>();
+
+            // Read all lines from the file
+            for (String line : Files.readAllLines(Paths.get(file))) {
+                String[] ar = line.split(":");
+                int start = Integer.parseInt(ar[0]);
+                int end = Integer.parseInt(ar[1]);
+
+                countCalls.put(start, countCalls.getOrDefault(start, 0) + 1);
+                countCalls.put(end, countCalls.getOrDefault(end, 0) - 1);
+            }
+
+            for (Map.Entry<Integer, Integer> entry : countCalls.entrySet()) {
+                int timestamp = entry.getKey();
+                int changeCall = entry.getValue();
+
+                currentSimultaneousCalls += changeCall;
+
+                if (currentSimultaneousCalls > maximumSimultaneousCalls) {
+                    maximumSimultaneousCalls = currentSimultaneousCalls;
+                    peakStartTime = timestamp;
+                }
+            }
+
+            for (Map.Entry<Integer, Integer> entry : countCalls.descendingMap().entrySet()) {
+                int timestamp = entry.getKey();
+                int changeCall = entry.getValue();
+
+                currentSimultaneousCalls -= changeCall;
+
+                if (currentSimultaneousCalls == maximumSimultaneousCalls) {
+                    peakEndTime = timestamp;
+                    break;
+                }
+            }
+
+            System.out.println("The peak for this call log is " + maximumSimultaneousCalls +
+                    " simultaneous calls, that occurred between " + peakStartTime +
+                    " and " + peakEndTime + ".");
+        } catch (IOException e) {
+            System.err.println("Error occured while reading the file: " + e.getMessage());
+        }
+    }
+}
